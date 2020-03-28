@@ -34,6 +34,13 @@ class ReactivePlannerController(PlannerControllerBase):
         # This methods needs to check if the current path, whose
         # waypoints are in self.currentPlannedPath, can still be
         # traversed
+
+        for waypoint in self.currentPlannedPath.waypoints:
+            coordinates = waypoint.coords
+            if (self.occupancyGrid.getCell(coordinates[0], coordinates[1])==1):
+                self.controller.stopDrivingToCurrentGoal()
+                print("Collision detected at:", coords)
+                print("New Path Generated.")
                 
         # If the route is not viable any more, call
         # self.controller.stopDrivingToCurrentGoal()
