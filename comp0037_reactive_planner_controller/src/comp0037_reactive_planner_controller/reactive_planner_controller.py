@@ -45,7 +45,6 @@ class ReactivePlannerController(PlannerControllerBase):
         # If the route is not viable any more, call
         # self.controller.stopDrivingToCurrentGoal()
 
-        pass
     
     def driveToGoal(self, goal):
 
