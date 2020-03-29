@@ -39,7 +39,7 @@ class ReactivePlannerController(PlannerControllerBase):
             coordinates = waypoint.coords
             if (self.occupancyGrid.getCell(coordinates[0], coordinates[1])==1):
                 self.controller.stopDrivingToCurrentGoal()
-                print("Collision detected at:", coords)
+                print("Collision detected at:", coordinates)
                 print("New Path Generated.")
                 
         # If the route is not viable any more, call

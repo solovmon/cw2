@@ -7,6 +7,8 @@ import tf
 import copy
 
 import numpy as np
+import csv
+import pickle
 from nav_msgs.srv import GetMap
 from comp0037_reactive_planner_controller.occupancy_grid import OccupancyGrid
 from comp0037_reactive_planner_controller.grid_drawer import OccupancyGridDrawer
@@ -91,6 +93,13 @@ class MapperNode(object):
         self.mostRecentTwist = Twist();
         self.twistSubscriber = rospy.Subscriber('/robot0/cmd_vel', Twist, self.twistCallback, queue_size=1)
         self.laserSubscriber = rospy.Subscriber("robot0/laser_0", LaserScan, self.laserScanCallback, queue_size=1)
+
+        # Entropy calculation variables
+
+        self.entropyValueSaving = True
+        self.previousEntropyTime = 0
+        self.EntropySaved = []
+
 
     def odometryCallback(self, msg):
         self.dataCopyLock.acquire()
@@ -339,8 +348,36 @@ class MapperNode(object):
     def run(self):
         while not rospy.is_shutdown():
             self.updateVisualisation()
+            self.computeEntropy()
             rospy.sleep(0.1)
-        
+        save_entropy(self.EntropySaved)
+    
+    def computeEntropy(self, updatePeriod = 5):
+        timeChange = rospy.get_time() - self.previousEntropyTime
+
+        if timeChange >= updatePeriod:
+            gridVector = self.occupancyGrid.getGridAsVector()
+            c = 0 
+            for i in gridVector:
+                if i not in [0,1]:
+                    c += 1 
+            Entropy =  c * math.log(2)
+            rospy.loginfo("Entropy: " + str(Entropy))
+
+            if self.entropyValueSaving:
+                self.EntropySaved.append(Entropy)
+                self.save_entropy(self.EntropySaved)
+
+
+            self.previousEntropyTime = rospy.get_time()
+
+            
+    def save_entropy(self, theList):
+        with open("/home/ros_user/entropy_values.csv", 'wr') as theFile:
+            w = csv.writer(theFile)
+            for value in theList:
+                w.writerow([value])
+            
   
 
   
