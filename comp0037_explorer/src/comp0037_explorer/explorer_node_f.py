@@ -46,6 +46,7 @@ class ExplorerNodeF(ExplorerNodeBase):
                 frontier = []
                 frontierQ = []
                 frontierQ.append(cell)
+
                 openFrontierQueue[cell]   = True
                 closedFrontierQueue[cell] = False
                 openMapQueue[cell]        = False
@@ -53,7 +54,7 @@ class ExplorerNodeF(ExplorerNodeBase):
                 
                 #inner BFS for finding cells on the same frontier
                 while len(frontierQ) > 0:
-                    #print('frontierQ:', searchQ)
+                    print('frontierQ:', searchQ)
                     frontierCell = frontierQ.pop(0)
 
                     #if cell has been looked at before, skip it
@@ -99,13 +100,13 @@ class ExplorerNodeF(ExplorerNodeBase):
             for neighbour in self.getNeighbourCells(cell):
                 #print('neighbour:', neighbour)
                 if (closedMapQueue[neighbour] == False)  \
-                |  (openMapQueue[neighbour]== False)       :
+                &  (openMapQueue[neighbour]== False)       :
                     for neighbour2 in self.getNeighbourCells(neighbour):
-                        print('neighbour2:', neighbour2)
+                        #print('neighbour2:', neighbour2)
                         if openMapQueue[neighbour2] is True:
                             #add neigbour to the outer search queue and mark as such
                             searchQ.append(neighbour)
-                            print('neighbour:', neighbour)
+                            #print('neighbour:', neighbour)
                             openFrontierQueue[neighbour]   = False
                             closedFrontierQueue[neighbour] = False
                             openMapQueue[neighbour]        = True
