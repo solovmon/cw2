@@ -99,6 +99,8 @@ class MapperNode(object):
         self.entropyValueSaving = True
         self.previousEntropyTime = 0
         self.EntropySaved = []
+        self.startTime = rospy.get_rostime().secs
+        self.discoveryDataSaved = []
 
 
     def odometryCallback(self, msg):
@@ -349,9 +351,36 @@ class MapperNode(object):
         while not rospy.is_shutdown():
             self.updateVisualisation()
             self.computeEntropy()
+            self.getDetectedCells()
             rospy.sleep(0.1)
         save_entropy(self.EntropySaved)
-    
+        save_detected(self.discoveryDataSaved)
+
+
+    #getthepercentegeofdetectedcells
+    def getDetectedCells(self):
+        currentTime = rospy.get_rostime().secs - self.startTime
+        knownCells = 0
+        w = self.occupancyGrid.getWidthInCells()
+        h = self.occupancyGrid.getHeightInCells()
+        for x in range(0, w):
+            for y in range(0, h):
+                if (self.occupancyGrid.getCell(x, y) == 1) | (self.occupancyGrid.getCell(x, y) == 0):
+                    knownCells = knownCells + 1
+
+        mapSize = w*h
+        mappedPercentage = float(knownCells)/float(mapSize)
+
+        data = [currentTime, mappedPercentage, knownCells, mapSize]
+        self.discoveryDataSaved.append(data)
+        self.save_detected(self.discoveryDataSaved)
+
+    def save_detected(self, data):
+        with open("/home/ros_user/discovered_values.csv", 'wr') as fileData:
+            w = csv.writer(fileData)
+            for value in data:
+                w.writerow(value)
+            
     def computeEntropy(self, updatePeriod = 5):
         timeChange = rospy.get_time() - self.previousEntropyTime
 

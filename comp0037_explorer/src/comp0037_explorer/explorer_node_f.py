@@ -11,7 +11,6 @@ class ExplorerNodeF(ExplorerNodeBase):
 
     def __init__(self):
         ExplorerNodeBase.__init__(self)
-
         self.blackList = []
 
     def updateFrontiers(self):

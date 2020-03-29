@@ -14,7 +14,7 @@ class ExplorerNodeBase(object):
 
     def __init__(self):
         rospy.init_node('explorer')
-
+        self.current_position = (0,0)
         # Get the drive robot service
         rospy.loginfo('Waiting for service drive_to_goal')
         rospy.wait_for_service('drive_to_goal')
@@ -56,7 +56,7 @@ class ExplorerNodeBase(object):
 
         self.current_pose_subscriber = rospy.Subscriber('/robot0/odom', Odometry, self.current_pose_callback)
         self.current_pose = Odometry()
-        self.current_position = (0,0)
+        
         
     def current_pose_callback(self, data):
         self.current_pose = data
