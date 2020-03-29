@@ -8,6 +8,7 @@ from comp0037_reactive_planner_controller.srv import *
 from comp0037_reactive_planner_controller.occupancy_grid import OccupancyGrid
 from comp0037_reactive_planner_controller.grid_drawer import OccupancyGridDrawer
 from geometry_msgs.msg  import Twist
+from nav_msgs.msg import Odometry
 
 class ExplorerNodeBase(object):
 
@@ -52,7 +53,17 @@ class ExplorerNodeBase(object):
             mapUpdate = mapRequestService(True)
             
         self.mapUpdateCallback(mapUpdate.initialMapUpdate)
+
+        self.current_pose_subscriber = rospy.Subscriber('/robot0/odom', Odometry, self.current_pose_callback)
+        self.current_pose = Odometry()
+        self.current_position = (0,0)
         
+    def current_pose_callback(self, data):
+        self.current_pose = data
+        pose = self.current_pose.pose.pose
+        position = pose.position
+        self.current_position = position
+
     def mapUpdateCallback(self, msg):
         rospy.loginfo("map update received")
         

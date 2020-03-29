@@ -15,85 +15,165 @@ class ExplorerNodeF(ExplorerNodeBase):
         self.blackList = []
 
     def updateFrontiers(self):
-        explored = defaultdict(bool)
+
+        #dictionaries used to store 'labels'
+        openMapQueue = defaultdict(bool)
+        closedMapQueue = defaultdict(bool)
+        openFrontierQueue = defaultdict(bool)
+        closedFrontierQueue = defaultdict(bool)
+
         searchQ = []
         allFrontiers = []
 
-        for x in range(0, self.occupancyGrid.getWidthInCells()):
-            for y in range(0, self.occupancyGrid.getHeightInCells()):
-                if self.occupancyGrid.getCell(x, y) == 0:
-                    start = (x, y)
-                    print(start)
-                    print('START')
-                    break
-            else: 
-                continue
-            break   
+        start = (0, 0)
 
         searchQ.append(start)
+        openFrontierQueue[start]   = False
+        closedFrontierQueue[start] = False
+        openMapQueue[start]        = True
+        closedMapQueue[start]      = False
 
-        #search through the available cells.
+        #outer BFS for finding the first frontier cell
         while len(searchQ) > 0:
-            print(searchQ)
             cell = searchQ.pop(0)
-            explored[cell] = True
+            #print('searchQ:', searchQ)
+
+            #if cell has been looked at before (search), skip it
+            if closedMapQueue[cell] is True:
+                continue
+            
             if self.isFrontierCell(cell[0],cell[1]) is True:
                 frontier = []
-                frontier.append(cell)
                 frontierQ = []
                 frontierQ.append(cell)
-                print('FRONTIER')
-                while len(frontierQ) > 0:
-                    print(frontierQ)
-                    frontierCell = frontierQ.pop(0)
-                    explored[frontierCell] = True
-                    for neighbour in self.getNeighbourCells(frontierCell):
-                        if explored[neighbour] is False:
-                            if self.isFrontierCell(neighbour[0],neighbour[1]) is True:
-                                frontier.append(neighbour)
-                                frontierQ.append(neighbour)
+
+                openFrontierQueue[cell]   = True
+                closedFrontierQueue[cell] = False
+                openMapQueue[cell]        = False
+                closedMapQueue[cell]      = False
                 
+                #inner BFS for finding cells on the same frontier
+                while len(frontierQ) > 0:
+                    frontierCell = frontierQ.pop(0)
+
+                    #if cell has been looked at before, skip it
+                    if (closedMapQueue[frontierCell] == True) \
+                    | (closedFrontierQueue[frontierCell] == True):
+                        continue
+
+                    
+                    if self.isFrontierCell(frontierCell[0],frontierCell[1]) is True:
+                        #add cell to the frontier and mark it as looked at as part of a frontier
+                        frontier.append(frontierCell)
+
+                        #look at neighbouring cells and add them to the frontier search queue if elegible
+                        for neighbour in self.getNeighbourCells(frontierCell):
+                            if (closedMapQueue[neighbour] == False)    \
+                            &  (closedFrontierQueue[neighbour] == False) \
+                            &  (openFrontierQueue[neighbour] == False)      :
+                                frontierQ.append(neighbour)
+
+                                #mark cell as added to the frontier queue
+                                openFrontierQueue[neighbour]   = True
+                                closedFrontierQueue[neighbour] = False
+                                openMapQueue[neighbour]        = False
+                                closedMapQueue[neighbour]      = False
+
+                    #mark cell as looked at (frontier)
+                    openFrontierQueue[frontierCell]   = False
+                    closedFrontierQueue[frontierCell] = True
+                    openMapQueue[frontierCell]        = False
+                    closedMapQueue[frontierCell]      = False
+                
+
+                #add frontier to the frontiers array
                 allFrontiers.append(frontier)
 
+                #mark all cells part of the frontier as looked at (search)
+                for frontierCell in frontier:
+                    openFrontierQueue[frontierCell]   = False
+                    closedFrontierQueue[frontierCell] = False
+                    openMapQueue[frontierCell]        = False
+                    closedMapQueue[frontierCell]      = True
+            
+            #look at neighbouring cells and add them to the outer search queue if elegible
             for neighbour in self.getNeighbourCells(cell):
-                if explored[neighbour] is False:
-                    searchQ.append(neighbour)
+                #print('neighbour:', neighbour)
+                if (closedMapQueue[neighbour] == False)  \
+                &  (openMapQueue[neighbour]== False)       :
+                    for neighbour2 in self.getNeighbourCells(neighbour):
+                        #print('neighbour2:', neighbour2)
+                        if openMapQueue[neighbour2] is True:
+                            #add neigbour to the outer search queue and mark as such
+                            searchQ.append(neighbour)
+                            #print('neighbour:', neighbour)
+                            openFrontierQueue[neighbour]   = False
+                            closedFrontierQueue[neighbour] = False
+                            openMapQueue[neighbour]        = True
+                            closedMapQueue[neighbour]      = False
+                            break
 
-        print('XD')
-        print(allFrontiers)
+            #mark cell as looked at (search)
+            openFrontierQueue[cell]   = False
+            closedFrontierQueue[cell] = False
+            openMapQueue[cell]        = False
+            closedMapQueue[cell]      = True
 
+        #save froniers
+        self.frontiers = allFrontiers
+        print('found frontiers:,',allFrontiers)
+
+        #if no frontiers found, end the program
         if len(allFrontiers) == 0:
             return False
-        
-        self.frontiers = allFrontiers
-
-        
 
         return True
 
     def chooseNewDestination(self):
-
-
-#         print 'blackList:'
-#         for coords in self.blackList:
-#             print str(coords)
-
         candidateGood = False
         destination = None
-        smallestD2 = float('inf')
 
-        for frontier in self.frontiers:
-            for candidate in frontier:
-                d2 = candidate[0]**2+(candidate[1]-0.5*self.occupancyGrid.getHeightInCells())**2
-                if (d2 < smallestD2):
-                    destination = candidate
-                    smallestD2 = d2
+        # #comment this out for largest frontier
+        # smallestD2 = float('inf')
+        # if len(self.frontiers) > 0:
+        #     for frontier in self.frontiers:
+        #         for candidate in frontier:
+        #             if candidate not in self.blackList:
+        #                 position = self.current_position
+        #                 d2 = ((position.x - candidate[0])**2 + (position.y - candidate[1])**2)**.5
+        #                 if (d2 < smallestD2):
+        #                     destination = candidate
+        #                     smallestD2 = d2
+        #                     candidateGood = True
+        # #end
+
+        #comment this out for closest frontier
+        largestFrontier = []
+        if len(self.frontiers) > 0:
+            for frontier in self.frontiers:
+                if len(frontier) > len(largestFrontier):
+                    largestFrontier = frontier
+                    length = len(largestFrontier)
+
+        #looping through the largest frontier from the middle cell in both directions
+        for x in range (length//2, length):
+            if largestFrontier[x] not in self.blackList:
+                candidateGood = True
+                destination = largestFrontier[x]
+                break
+        
+        if candidateGood is not True:
+            for x in range (-length//2, 1):
+                if largestFrontier[-x] not in self.blackList:
+                    candidateGood = True
+                    destination = largestFrontier[-x]
+                    break
+        #end
 
         return candidateGood, destination
 
     def destinationReached(self, goal, goalReached):
         if goalReached is False:
-#             print 'Adding ' + str(goal) + ' to the naughty step'
             self.blackList.append(goal)
 
     def getNeighbourCells(self, cell):
@@ -102,10 +182,8 @@ class ExplorerNodeF(ExplorerNodeBase):
         for card in cardinals:
             neighbour = (cell[0] + card[0], cell[1] + card[1])
             if (neighbour[0] >= 0) & (neighbour[0] < self.occupancyGrid.getWidthInCells()) \
-            & (neighbour[1] >= 0) & (neighbour[1] < self.occupancyGrid.getHeightInCells()) \
-            & (self.occupancyGrid.getCell(neighbour[0], neighbour[1]) == 0):
+            & (neighbour[1] >= 0) & (neighbour[1] < self.occupancyGrid.getHeightInCells()) :
                 neighbours.append(neighbour)
-
         return neighbours
 
 
