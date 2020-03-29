@@ -28,11 +28,15 @@ class ExplorerNodeF(ExplorerNodeBase):
         start = (0, 0)
 
         searchQ.append(start)
-        openMapQueue[start] = True
+        openFrontierQueue[start]   = False
+        closedFrontierQueue[start] = False
+        openMapQueue[start]        = True
+        closedMapQueue[start]      = False
 
         #outer BFS for finding the first frontier cell
         while len(searchQ) > 0:
             cell = searchQ.pop(0)
+            #print('searchQ:', searchQ)
 
             #if cell has been looked at before (search), skip it
             if closedMapQueue[cell] is True:
@@ -42,10 +46,14 @@ class ExplorerNodeF(ExplorerNodeBase):
                 frontier = []
                 frontierQ = []
                 frontierQ.append(cell)
-                openFrontierQueue[cell] = True
+                openFrontierQueue[cell]   = True
+                closedFrontierQueue[cell] = False
+                openMapQueue[cell]        = False
+                closedMapQueue[cell]      = False
                 
                 #inner BFS for finding cells on the same frontier
                 while len(frontierQ) > 0:
+                    #print('frontierQ:', searchQ)
                     frontierCell = frontierQ.pop(0)
 
                     #if cell has been looked at before, skip it
@@ -63,32 +71,56 @@ class ExplorerNodeF(ExplorerNodeBase):
                             |  (closedFrontierQueue[neighbour] == False) \
                             |  (openFrontierQueue[neighbour] == False)      :
                                 frontierQ.append(neighbour)
-                                openFrontierQueue[neighbour] = True
+
+                                #mark cell as added to the frontier queue
+                                openFrontierQueue[neighbour]   = True
+                                closedFrontierQueue[neighbour] = False
+                                openMapQueue[neighbour]        = False
+                                closedMapQueue[neighbour]      = False
 
                     #mark cell as looked at (frontier)
+                    openFrontierQueue[frontierCell]   = False
                     closedFrontierQueue[frontierCell] = True
+                    openMapQueue[frontierCell]        = False
+                    closedMapQueue[frontierCell]      = False
+                
 
                 #add frontier to the frontiers array
                 allFrontiers.append(frontier)
 
                 #mark all cells part of the frontier as looked at (search)
                 for frontierCell in frontier:
-                    closedMapQueue[frontierCell] = True
+                    openFrontierQueue[frontierCell]   = False
+                    closedFrontierQueue[frontierCell] = False
+                    openMapQueue[frontierCell]        = False
+                    closedMapQueue[frontierCell]      = True
             
             #look at neighbouring cells and add them to the outer search queue if elegible
             for neighbour in self.getNeighbourCells(cell):
-                if (closedMapQueue[neighbour] == True)  \
-                |  (openMapQueue[neighbour]== True)       :
+                #print('neighbour:', neighbour)
+                if (closedMapQueue[neighbour] == False)  \
+                |  (openMapQueue[neighbour]== False)       :
                     for neighbour2 in self.getNeighbourCells(neighbour):
+                        print('neighbour2:', neighbour2)
                         if openMapQueue[neighbour2] is True:
                             #add neigbour to the outer search queue and mark as such
                             searchQ.append(neighbour)
-                            openMapQueue[neighbour] = True
+                            print('neighbour:', neighbour)
+                            openFrontierQueue[neighbour]   = False
+                            closedFrontierQueue[neighbour] = False
+                            openMapQueue[neighbour]        = True
+                            closedMapQueue[neighbour]      = False
                             break
+
+            #mark cell as looked at (search)
+            openFrontierQueue[cell]   = False
+            closedFrontierQueue[cell] = False
+            openMapQueue[cell]        = False
+            closedMapQueue[cell]      = True
 
         #save froniers
         self.frontiers = allFrontiers
-        print(allFrontiers)
+        print('found frontiers:,',allFrontiers)
 
         #if no frontiers found, end the program
         if len(allFrontiers) == 0:
@@ -100,19 +132,16 @@ class ExplorerNodeF(ExplorerNodeBase):
         candidateGood = False
         destination = None
         smallestD2 = float('inf')
-
-        for frontier in self.frontiers:
-            for candidate in frontier:
-                candidateGood = True
-                for k in range(0, len(self.blackList)):
-                    if self.blackList[k] == candidate:
-                        candidateGood = False
-                        break
-                if candidateGood is True:
-                    d2 = candidate[0]**2+(candidate[1]-0.5*self.occupancyGrid.getHeightInCells())**2
-                    if (d2 < smallestD2):
-                        destination = candidate
-                        smallestD2 = d2
+        if len(self.frontiers) > 0:
+            for frontier in self.frontiers:
+                for candidate in frontier:
+                    if candidate not in self.blackList:
+                        candidateGood = True
+                    if candidateGood is True:
+                        d2 = candidate[0]**2+(candidate[1]-0.5*self.occupancyGrid.getHeightInCells())**2
+                        if (d2 < smallestD2):
+                            destination = candidate
+                            smallestD2 = d2
 
         return candidateGood, destination
 
