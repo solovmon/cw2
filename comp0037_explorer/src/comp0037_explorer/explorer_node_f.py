@@ -60,6 +60,7 @@ class ExplorerNodeF(ExplorerNodeBase):
                     if (closedMapQueue[frontierCell] == True) \
                     | (closedFrontierQueue[frontierCell] == True):
                         continue
+
                     
                     if self.isFrontierCell(frontierCell[0],frontierCell[1]) is True:
                         #add cell to the frontier and mark it as looked at as part of a frontier
@@ -131,17 +132,43 @@ class ExplorerNodeF(ExplorerNodeBase):
     def chooseNewDestination(self):
         candidateGood = False
         destination = None
-        smallestD2 = float('inf')
+
+        # #comment this out for largest frontier
+        # smallestD2 = float('inf')
+        # if len(self.frontiers) > 0:
+        #     for frontier in self.frontiers:
+        #         for candidate in frontier:
+        #             if candidate not in self.blackList:
+        #                 position = self.current_position
+        #                 d2 = ((position.x - candidate[0])**2 + (position.y - candidate[1])**2)**.5
+        #                 if (d2 < smallestD2):
+        #                     destination = candidate
+        #                     smallestD2 = d2
+        #                     candidateGood = True
+        # #end
+
+        #comment this out for closest frontier
+        largestFrontier = []
         if len(self.frontiers) > 0:
             for frontier in self.frontiers:
-                for candidate in frontier:
-                    if candidate not in self.blackList:
-                        candidateGood = True
-                    if candidateGood is True:
-                        d2 = candidate[0]**2+(candidate[1]-0.5*self.occupancyGrid.getHeightInCells())**2
-                        if (d2 < smallestD2):
-                            destination = candidate
-                            smallestD2 = d2
+                if len(frontier) > len(largestFrontier):
+                    largestFrontier = frontier
+                    length = len(largestFrontier)
+
+        #looping through the largest frontier from the middle cell in both directions
+        for x in range (length//2, length):
+            if largestFrontier[x] not in self.blackList:
+                candidateGood = True
+                destination = largestFrontier[x]
+                break
+        
+        if candidateGood is not True:
+            for x in range (-length//2, 1):
+                if largestFrontier[-x] not in self.blackList:
+                    candidateGood = True
+                    destination = largestFrontier[-x]
+                    break
+        #end
 
         return candidateGood, destination
 
