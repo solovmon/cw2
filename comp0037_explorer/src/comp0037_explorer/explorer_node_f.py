@@ -137,15 +137,27 @@ class ExplorerNodeF(ExplorerNodeBase):
         if len(self.frontiers) > 0:
             for frontier in self.frontiers:
                 if len(frontier) > 1:
-                    candidate = frontier[len(frontier)//2]
-                    if candidate not in self.blackList:
-                        position = self.current_position
-                        d2 = (position.x - candidate[0])**2 + (position.y - candidate[1])**2
-                        if (d2 < smallestD2):
-                            destination = candidate
-                            smallestD2 = d2
-                            candidateGood = True
-                
+                    middlePoint = frontier[len(frontier)//2]
+                    position = self.current_position
+                    d2 = (position.x - middlePoint[0])**2 + (position.y - middlePoint[1])**2
+                    if (d2 < smallestD2):
+                        choosenFrontier = frontier
+                        smallestD2 = d2
+        
+        length = len(choosenFrontier)
+        #looping through the closest frontier from the middle cell in both directions
+        for x in range (length//2, length):
+            if choosenFrontier[x] not in self.blackList:
+                candidateGood = True
+                destination = choosenFrontier[x]
+                break
+        
+        if candidateGood is not True:
+            for x in range (-length//2, 1):
+                if choosenFrontier[-x] not in self.blackList:
+                    candidateGood = True
+                    destination = choosenFrontier[-x]
+                    break
          #end   
 
         # #comment this out for closest frontier
