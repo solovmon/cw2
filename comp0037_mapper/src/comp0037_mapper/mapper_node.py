@@ -101,6 +101,7 @@ class MapperNode(object):
         self.EntropySaved = []
         self.startTime = rospy.get_rostime().secs
         self.discoveryDataSaved = []
+        self.lastTime = 0
 
 
     def odometryCallback(self, msg):
@@ -352,9 +353,13 @@ class MapperNode(object):
             self.updateVisualisation()
             self.computeEntropy()
             self.getDetectedCells()
+            nowTime = rospy.get_rostime().secs
+            if (nowTime - self.lastTime) % 240 == 0:
+                self.save_detected(self.discoveryDataSaved)
+                self.save_entropy(self.EntropySaved)
+                self.lastTime = nowTime
             rospy.sleep(0.1)
-        save_entropy(self.EntropySaved)
-        save_detected(self.discoveryDataSaved)
+        
 
 
     #getthepercentegeofdetectedcells
@@ -369,17 +374,18 @@ class MapperNode(object):
                     knownCells = knownCells + 1
 
         mapSize = w*h
-        mappedPercentage = float(knownCells)/float(mapSize)
 
-        data = [currentTime, mappedPercentage, knownCells, mapSize]
+        data = [currentTime, knownCells, mapSize]
         self.discoveryDataSaved.append(data)
-        self.save_detected(self.discoveryDataSaved)
+        #self.save_detected(self.discoveryDataSaved)
 
     def save_detected(self, data):
         with open("/home/ros_user/discovered_values.csv", 'wr') as fileData:
-            w = csv.writer(fileData)
-            for value in data:
-                w.writerow(value)
+            # w = csv.writer(fileData)
+            # for value in data:
+            #     w.writerow(value)
+            pickle.dump(self.discoveryDataSaved, fileData)
+            print('saved data')
             
     def computeEntropy(self, updatePeriod = 5):
         timeChange = rospy.get_time() - self.previousEntropyTime
@@ -395,17 +401,17 @@ class MapperNode(object):
 
             if self.entropyValueSaving:
                 self.EntropySaved.append(Entropy)
-                self.save_entropy(self.EntropySaved)
-
-
+                #self.save_entropy(self.EntropySaved)
             self.previousEntropyTime = rospy.get_time()
 
             
     def save_entropy(self, theList):
         with open("/home/ros_user/entropy_values.csv", 'wr') as theFile:
-            w = csv.writer(theFile)
-            for value in theList:
-                w.writerow([value])
+            # w = csv.writer(theFile)
+            # for value in theList:
+            #     w.writerow([value])
+            pickle.dump(self.EntropySaved, theFile)
+            print('saved DAta')
             
   
 

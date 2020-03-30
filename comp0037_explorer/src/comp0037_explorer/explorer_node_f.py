@@ -132,42 +132,44 @@ class ExplorerNodeF(ExplorerNodeBase):
         candidateGood = False
         destination = None
 
-        # #comment this out for largest frontier
-        # smallestD2 = float('inf')
-        # if len(self.frontiers) > 0:
-        #     for frontier in self.frontiers:
-        #         for candidate in frontier:
-        #             if candidate not in self.blackList:
-        #                 position = self.current_position
-        #                 d2 = ((position.x - candidate[0])**2 + (position.y - candidate[1])**2)**.5
-        #                 if (d2 < smallestD2):
-        #                     destination = candidate
-        #                     smallestD2 = d2
-        #                     candidateGood = True
-        # #end
-
-        #comment this out for closest frontier
-        largestFrontier = []
+        #comment this out for largest frontier
+        smallestD2 = float('inf')
         if len(self.frontiers) > 0:
             for frontier in self.frontiers:
-                if len(frontier) > len(largestFrontier):
-                    largestFrontier = frontier
-                    length = len(largestFrontier)
+                if len(frontier) > 1:
+                    candidate = frontier[len(frontier)//2]
+                    if candidate not in self.blackList:
+                        position = self.current_position
+                        d2 = (position.x - candidate[0])**2 + (position.y - candidate[1])**2
+                        if (d2 < smallestD2):
+                            destination = candidate
+                            smallestD2 = d2
+                            candidateGood = True
+                
+         #end   
 
-        #looping through the largest frontier from the middle cell in both directions
-        for x in range (length//2, length):
-            if largestFrontier[x] not in self.blackList:
-                candidateGood = True
-                destination = largestFrontier[x]
-                break
+        # #comment this out for closest frontier
+        # largestFrontier = []
+        # if len(self.frontiers) > 0:
+        #     for frontier in self.frontiers:
+        #         if len(frontier) > len(largestFrontier):
+        #             largestFrontier = frontier
+        #             length = len(largestFrontier)
+
+        # #looping through the largest frontier from the middle cell in both directions
+        # for x in range (length//2, length):
+        #     if largestFrontier[x] not in self.blackList:
+        #         candidateGood = True
+        #         destination = largestFrontier[x]
+        #         break
         
-        if candidateGood is not True:
-            for x in range (-length//2, 1):
-                if largestFrontier[-x] not in self.blackList:
-                    candidateGood = True
-                    destination = largestFrontier[-x]
-                    break
-        #end
+        # if candidateGood is not True:
+        #     for x in range (-length//2, 1):
+        #         if largestFrontier[-x] not in self.blackList:
+        #             candidateGood = True
+        #             destination = largestFrontier[-x]
+        #             break
+        # #end
 
         return candidateGood, destination
 
