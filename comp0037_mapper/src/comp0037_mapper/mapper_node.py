@@ -351,12 +351,12 @@ class MapperNode(object):
     def run(self):
         while not rospy.is_shutdown():
             self.updateVisualisation()
-            self.computeEntropy()
+            #self.computeEntropy()
             self.getDetectedCells()
             nowTime = rospy.get_rostime().secs
             if (nowTime - self.lastTime) % 240 == 0:
                 self.save_detected(self.discoveryDataSaved)
-                self.save_entropy(self.EntropySaved)
+                #self.save_entropy(self.EntropySaved)
                 self.lastTime = nowTime
             rospy.sleep(0.1)
         

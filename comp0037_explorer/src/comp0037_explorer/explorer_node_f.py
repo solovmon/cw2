@@ -125,62 +125,61 @@ class ExplorerNodeF(ExplorerNodeBase):
         #if no frontiers found, end the program
         if len(allFrontiers) == 0:
             return False
-
         return True
 
     def chooseNewDestination(self):
         candidateGood = False
         destination = None
 
-        #comment this out for largest frontier
-        smallestD2 = float('inf')
-        if len(self.frontiers) > 0:
-            for frontier in self.frontiers:
-                if len(frontier) > 1:
-                    middlePoint = frontier[len(frontier)//2]
-                    position = self.current_position
-                    d2 = (position.x - middlePoint[0])**2 + (position.y - middlePoint[1])**2
-                    if (d2 < smallestD2):
-                        choosenFrontier = frontier
-                        smallestD2 = d2
-        
-        length = len(choosenFrontier)
-        #looping through the closest frontier from the middle cell in both directions
-        for x in range (length//2, length):
-            if choosenFrontier[x] not in self.blackList:
-                candidateGood = True
-                destination = choosenFrontier[x]
-                break
-        
-        if candidateGood is not True:
-            for x in range (-length//2, 1):
-                if choosenFrontier[-x] not in self.blackList:
-                    candidateGood = True
-                    destination = choosenFrontier[-x]
-                    break
-         #end   
-
-        # #comment this out for closest frontier
-        # largestFrontier = []
+        # #comment this out for largest frontier
+        # smallestD2 = float('inf')
         # if len(self.frontiers) > 0:
         #     for frontier in self.frontiers:
-        #         if len(frontier) > len(largestFrontier):
-        #             largestFrontier = frontier
-        #             length = len(largestFrontier)
-
-        # #looping through the largest frontier from the middle cell in both directions
+        #         if len(frontier) > 1:
+        #             middlePoint = frontier[len(frontier)//2]
+        #             position = self.current_position
+        #             d2 = (position.x - middlePoint[0])**2 + (position.y - middlePoint[1])**2
+        #             if (d2 < smallestD2):
+        #                 choosenFrontier = frontier
+        #                 smallestD2 = d2
+        
+        # length = len(choosenFrontier)
+        # #looping through the closest frontier from the middle cell in both directions
         # for x in range (length//2, length):
-        #     if largestFrontier[x] not in self.blackList:
+        #     if choosenFrontier[x] not in self.blackList:
         #         candidateGood = True
-        #         destination = largestFrontier[x]
+        #         destination = choosenFrontier[x]
         #         break
         
         # if candidateGood is not True:
         #     for x in range (-length//2, 1):
-        #         if largestFrontier[-x] not in self.blackList:
+        #         if choosenFrontier[-x] not in self.blackList:
         #             candidateGood = True
-        #             destination = largestFrontier[-x]
+        #             destination = choosenFrontier[-x]
         #             break
+        # #end   
+
+        #comment this out for closest frontier
+        largestFrontier = []
+        if len(self.frontiers) > 0:
+            for frontier in self.frontiers:
+                if len(frontier) > len(largestFrontier):
+                    largestFrontier = frontier
+                    length = len(largestFrontier)
+
+        #looping through the largest frontier from the middle cell in both directions
+        for x in range (length//2, length):
+            if largestFrontier[x] not in self.blackList:
+                candidateGood = True
+                destination = largestFrontier[x]
+                break
+        
+        if candidateGood is not True:
+            for x in range (-length//2, 1):
+                if largestFrontier[-x] not in self.blackList:
+                    candidateGood = True
+                    destination = largestFrontier[-x]
+                    break
         # #end
 
         return candidateGood, destination
